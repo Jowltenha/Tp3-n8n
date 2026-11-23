@@ -1,0 +1,463 @@
+{
+  "id": "BB9ScipVpJeyLDNu",
+  "name": "TP3 - Exercicio 09 - Agente com Estado Persistente em JSON",
+  "description": null,
+  "active": true,
+  "activeVersionId": "594a0b41-ba18-4662-b80d-502d90c9e891",
+  "createdAt": "2026-11-23T06:43:14.163Z",
+  "updatedAt": "2026-11-23T06:43:14.163Z",
+  "isArchived": false,
+  "versionId": "594a0b41-ba18-4662-b80d-502d90c9e891",
+  "versionCounter": 1,
+  "sourceWorkflowId": null,
+  "triggerCount": 1,
+  "nodes": [
+    {
+      "id": "03995393-dd9b-5e4e-acde-3b7d9cdcc56f",
+      "name": "[ENTRADA] Webhook Mensagem do Cliente",
+      "webhookId": "3a609482-aaaa-56d8-ba8b-d6b129e538db",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tp3-ex09-conversa",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "74fba9d6-e540-5738-ba54-f247a621417d",
+      "name": "[FUNCAO] Normalizar Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const b = $json.body || {};\nreturn [{ json: {\n  pergunta_id: b.pergunta_id || ('PERG-' + $now.toFormat('yyyyMMdd-HHmmss') + '-' + $execution.id),\n  cliente_id: b.cliente_id || 'nao_informado',\n  session_id: b.session_id || b.cliente_id || ('sessao-' + $execution.id),\n  mensagem: String(b.mensagem || '').trim(),\n  origem: 'ex09',\n  recebido_em: $now.toISO()\n} }];"
+      }
+    },
+    {
+      "id": "268e3ccf-c81d-596c-a54d-977c5e3a2c0b",
+      "name": "[ESTADO] Carregar Estado da Conversa",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "Ge50ZxVGwrqRNgjr",
+          "cachedResultName": "tp3_conversas_estado"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.session_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      }
+    },
+    {
+      "id": "d0eb3eb7-be2a-5190-ba3d-1142b83243e1",
+      "name": "[ESTADO] Reconstruir Historico (JSON)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Roda ANTES do agente: le o estado salvo por execucoes anteriores (talvez em outro servidor n8n).\nconst msg = $('[FUNCAO] Normalizar Mensagem').first().json;\nconst linha = $input.all().map(i => i.json).find(r => r.session_id);\nlet historico = [];\nlet contexto = {};\nif (linha) {\n  try { historico = JSON.parse(linha.historico_json || '[]'); } catch (e) { historico = []; }\n  try { contexto = JSON.parse(linha.contexto_json || '{}'); } catch (e) { contexto = {}; }\n}\nconst recente = historico.slice(-10);\nconst texto = recente.map(t => `Cliente: ${t.cliente}\\nAgente: ${t.agente}`).join('\\n\\n');\nconst prompt = (recente.length\n  ? `Historico desta conversa, recuperado do estado persistido (${recente.length} trocas):\\n${texto}\\n\\n`\n  : 'Esta e a primeira mensagem desta conversa (nenhum estado salvo).\\n\\n')\n  + `Nova mensagem do cliente: ${msg.mensagem}`;\nreturn [{ json: {\n  ...msg,\n  estado_encontrado: !!linha,\n  trocas_recuperadas: recente.length,\n  historico,\n  contexto,\n  criado_em: linha ? linha.criado_em : $now.toISO(),\n  prompt_agente: prompt\n} }];"
+      }
+    },
+    {
+      "id": "ffe5734e-dd21-546a-a41c-9e9a427b042b",
+      "name": "[AGENTE] Agente de Atendimento",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        900,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.prompt_agente }}",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "Voce e o agente de atendimento da Vortice Logistica, uma transportadora. Responda em portugues do Brasil, de forma cordial, objetiva e em poucas frases.\nRegras:\n1. Sempre que o cliente perguntar sobre um pedido (status, localizacao, previsao, atraso, avaria ou entrega), chame a ferramenta consultar_status_pedido com o codigo do pedido ANTES de responder. Nunca invente status, datas ou localizacao: use apenas o que a ferramenta devolver.\n2. Se o cliente nao informar o codigo do pedido (formato PED-0000), peca o codigo.\n3. Se a ferramenta nao encontrar o pedido, diga isso e peca para o cliente conferir o codigo.\n4. Em caso de avaria, informe que o caso segue para a equipe de sinistros. Em caso de atraso, informe a nova previsao e o motivo registrado.\n5. Esta e uma conversa com varias mensagens. Use o que o cliente ja informou antes (nome, codigo do pedido, problema relatado) e nao peca de novo uma informacao que ja foi dada.",
+          "returnIntermediateSteps": true,
+          "enableStreaming": false
+        }
+      }
+    },
+    {
+      "id": "8eeba355-4c82-5b5f-ac75-3368b0430842",
+      "name": "[IA] Modelo de Linguagem (Agente)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        780,
+        220
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "cc/claude-haiku-5-5"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "X4WCOOQMDXqxOZAj",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "id": "6e23047f-ec46-5b5a-9196-75fe47e01072",
+      "name": "consultar_status_pedido",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        980,
+        220
+      ],
+      "parameters": {
+        "description": "Consulta o status de um pedido da Vortice Logistica na base de pedidos. Use sempre que o cliente perguntar sobre um pedido. Entrada: o codigo do pedido no formato PED-0000 (ex.: PED-3001). Devolve status, localizacao atual, previsao de entrega, transportadora e observacoes.",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "UGl6GO0yzmv3tzKq",
+          "cachedResultName": "TP3 - Sub-workflow - Consulta de Status de Pedido"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pedido_id": "={{ $fromAI('pedido_id', `Codigo do pedido no formato PED-0000`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "pedido_id",
+              "displayName": "pedido_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      }
+    },
+    {
+      "id": "6d99c652-5bb9-53cc-96be-a3ce184d5ffd",
+      "name": "[ESTADO] Atualizar Historico (JSON)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1140,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const c = $('[ESTADO] Reconstruir Historico (JSON)').first().json;\nconst a = $input.first().json;\nconst historico = [...c.historico, { cliente: c.mensagem, agente: a.output, em: $now.toISO(), execucao: $execution.id }].slice(-10);\nconst pedidos = [...new Set([...(c.contexto.pedidos_citados || []),\n  ...((c.mensagem + ' ' + a.output).toUpperCase().match(/PED-\\d+/g) || [])])];\nreturn [{ json: {\n  session_id: c.session_id,\n  cliente_id: c.cliente_id,\n  historico_json: JSON.stringify(historico),\n  contexto_json: JSON.stringify({ pedidos_citados: pedidos, ultima_execucao: $execution.id }),\n  total_mensagens: historico.length,\n  criado_em: c.criado_em,\n  atualizado_em: $now.toISO(),\n  resposta: a.output,\n  estado_encontrado: c.estado_encontrado,\n  trocas_recuperadas: c.trocas_recuperadas,\n  ferramentas_acionadas: (a.intermediateSteps || []).map(p => p.action && p.action.tool)\n} }];"
+      }
+    },
+    {
+      "id": "3114b824-f283-5dcf-82f2-674a147f0e1f",
+      "name": "[ESTADO] Salvar Estado em tp3_conversas_estado",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
+      "position": [
+        1360,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "upsert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "Ge50ZxVGwrqRNgjr",
+          "cachedResultName": "tp3_conversas_estado"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "session_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.session_id }}"
+            }
+          ]
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "session_id": "={{ $json.session_id }}",
+            "cliente_id": "={{ $json.cliente_id }}",
+            "historico_json": "={{ $json.historico_json }}",
+            "contexto_json": "={{ $json.contexto_json }}",
+            "total_mensagens": "={{ $json.total_mensagens }}",
+            "criado_em": "={{ $json.criado_em }}",
+            "atualizado_em": "={{ $json.atualizado_em }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "session_id",
+              "displayName": "session_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cliente_id",
+              "displayName": "cliente_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "historico_json",
+              "displayName": "historico_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "contexto_json",
+              "displayName": "contexto_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "total_mensagens",
+              "displayName": "total_mensagens",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "criado_em",
+              "displayName": "criado_em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "atualizado_em",
+              "displayName": "atualizado_em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "2fc0ecca-f423-5fb1-aa26-a9418e342a98",
+      "name": "[SAIDA] Responder ao Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1580,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { session_id: $('[ESTADO] Atualizar Historico (JSON)').first().json.session_id, resposta: $('[ESTADO] Atualizar Historico (JSON)').first().json.resposta, estado_encontrado: $('[ESTADO] Atualizar Historico (JSON)').first().json.estado_encontrado, trocas_recuperadas: $('[ESTADO] Atualizar Historico (JSON)').first().json.trocas_recuperadas, total_trocas_salvas: $('[ESTADO] Atualizar Historico (JSON)').first().json.total_mensagens, ferramentas_acionadas: $('[ESTADO] Atualizar Historico (JSON)').first().json.ferramentas_acionadas, execucao: $execution.id } }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "[IA] Modelo de Linguagem (Agente)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "[AGENTE] Agente de Atendimento",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_status_pedido": {
+      "ai_tool": [
+        [
+          {
+            "node": "[AGENTE] Agente de Atendimento",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[ENTRADA] Webhook Mensagem do Cliente": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Normalizar Mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Normalizar Mensagem": {
+      "main": [
+        [
+          {
+            "node": "[ESTADO] Carregar Estado da Conversa",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[ESTADO] Carregar Estado da Conversa": {
+      "main": [
+        [
+          {
+            "node": "[ESTADO] Reconstruir Historico (JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[ESTADO] Reconstruir Historico (JSON)": {
+      "main": [
+        [
+          {
+            "node": "[AGENTE] Agente de Atendimento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[AGENTE] Agente de Atendimento": {
+      "main": [
+        [
+          {
+            "node": "[ESTADO] Atualizar Historico (JSON)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[ESTADO] Atualizar Historico (JSON)": {
+      "main": [
+        [
+          {
+            "node": "[ESTADO] Salvar Estado em tp3_conversas_estado",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[ESTADO] Salvar Estado em tp3_conversas_estado": {
+      "main": [
+        [
+          {
+            "node": "[SAIDA] Responder ao Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/Sao_Paulo",
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "pinData": null,
+  "meta": null,
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "BB9ScipVpJeyLDNu",
+      "projectId": "UBzCYw0nnolqWLCz",
+      "project": {
+        "id": "UBzCYw0nnolqWLCz",
+        "name": "João Pedro Barboza <joaopedro.rigoto@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "502d8937-e56a-4a1a-9907-85b4a81f6106",
+        "createdAt": "2026-10-07T12:39:16.710Z",
+        "updatedAt": "2026-10-07T12:41:11.370Z"
+      },
+      "createdAt": "2026-11-23T06:43:14.165Z",
+      "updatedAt": "2026-11-23T06:43:14.165Z"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "http": 200,
+  "execucao": "539",
+  "duracao_segundos": 12.9,
+  "resposta": {
+    "resumo": "lote_matinal",
+    "gerado_em": "2026-11-23T03:48:29.691-03:00",
+    "total_mensagens": 10,
+    "total_por_categoria": {
+      "atraso": 2,
+      "avaria": 3,
+      "rastreamento": 3,
+      "outros": 2
+    },
+    "conferencia_contagem_manual": [
+      {
+        "categoria": "atraso",
+        "obtido": 2,
+        "esperado": 2,
+        "confere": true
+      },
+      {
+        "categoria": "avaria",
+        "obtido": 3,
+        "esperado": 3,
+        "confere": true
+      },
+      {
+        "categoria": "outros",
+        "obtido": 2,
+        "esperado": 2,
+        "confere": true
+      },
+      {
+        "categoria": "rastreamento",
+        "obtido": 3,
+        "esperado": 3,
+        "confere": true
+      }
+    ],
+    "resumo_bate_com_contagem_manual": true,
+    "itens": [
+      {
+        "pergunta_id": "L01",
+        "categoria": "atraso",
+        "esperado": "atraso",
+        "urgencia": "alta"
+      },
+      {
+        "pergunta_id": "L02",
+        "categoria": "avaria",
+        "esperado": "avaria",
+        "urgencia": "alta"
+      },
+      {
+        "pergunta_id": "L03",
+        "categoria": "rastreamento",
+        "esperado": "rastreamento",
+        "urgencia": "baixa"
+      },
+      {
+        "pergunta_id": "L04",
+        "categoria": "rastreamento",
+        "esperado": "rastreamento",
+        "urgencia": "baixa"
+      },
+      {
+        "pergunta_id": "L05",
+        "categoria": "atraso",
+        "esperado": "atraso",
+        "urgencia": "alta"
+      },
+      {
+        "pergunta_id": "L06",
+        "categoria": "avaria",
+        "esperado": "avaria",
+        "urgencia": "alta"
+      },
+      {
+        "pergunta_id": "L07",
+        "categoria": "outros",
+        "esperado": "outros",
+        "urgencia": "baixa"
+      },
+      {
+        "pergunta_id": "L08",
+        "categoria": "rastreamento",
+        "esperado": "rastreamento",
+        "urgencia": "baixa"
+      },
+      {
+        "pergunta_id": "L09",
+        "categoria": "avaria",
+        "esperado": "avaria",
+        "urgencia": "alta"
+      },
+      {
+        "pergunta_id": "L10",
+        "categoria": "outros",
+        "esperado": "outros",
+        "urgencia": "baixa"
+      }
+    ]
+  }
+}

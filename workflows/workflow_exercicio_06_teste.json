@@ -1,0 +1,200 @@
+{
+  "id": "u9f6CNFEuTEp5WWC",
+  "name": "TP3 - Exercicio 06 - Teste de Reutilizacao (Relatorio Proativo de Pedido)",
+  "description": null,
+  "active": true,
+  "activeVersionId": "42745504-cd17-4271-82b4-efdfc55b28dc",
+  "createdAt": "2026-11-23T06:43:14.048Z",
+  "updatedAt": "2026-11-23T06:43:14.048Z",
+  "isArchived": false,
+  "versionId": "42745504-cd17-4271-82b4-efdfc55b28dc",
+  "versionCounter": 1,
+  "sourceWorkflowId": null,
+  "triggerCount": 1,
+  "nodes": [
+    {
+      "id": "6c8bc71a-161a-5a39-9718-0043fd8672ae",
+      "name": "[ENTRADA] Webhook Relatorio Proativo",
+      "webhookId": "454f1760-3c83-52fb-a680-48120de0d20a",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tp3-ex06-relatorio-proativo",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "375d8798-27f1-56c0-ba8f-ce3ce3580c83",
+      "name": "[FUNCAO] Listar Pedidos do Relatorio",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const b = $json.body || {};\nconst pedidos = Array.isArray(b.pedidos) && b.pedidos.length ? b.pedidos : ['PED-3002', 'PED-3005'];\nreturn pedidos.map(p => ({ json: { pedido_id: p } }));"
+      }
+    },
+    {
+      "id": "22765326-51a6-5967-a47f-7c9b51413aca",
+      "name": "[SUBWORKFLOW] Consultar Status do Pedido",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "UGl6GO0yzmv3tzKq",
+          "cachedResultName": "TP3 - Sub-workflow - Consulta de Status de Pedido"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pedido_id": "={{ $json.pedido_id }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "pedido_id",
+              "displayName": "pedido_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string",
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": true
+        },
+        "mode": "each"
+      }
+    },
+    {
+      "id": "ebbbe230-b977-5882-91f3-4831a656d762",
+      "name": "[FUNCAO] Montar Relatorio Proativo",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Mensagem enviada ao cliente antes de qualquer contato com o atendimento.\nconst linhas = $input.all().map(i => i.json).map(p => p.encontrado\n  ? { pedido_id: p.pedido_id, cliente: p.cliente_nome, status: p.status,\n      aviso_ao_cliente: `Ola, ${p.cliente_nome}! Seu pedido ${p.pedido_id} (${p.produto}) esta com status \"${p.status}\". ` +\n        `Local atual: ${p.localizacao_atual}. Previsao de entrega: ${p.previsao_entrega}.` }\n  : { pedido_id: p.pedido_id, status: 'nao_encontrado', aviso_ao_cliente: null });\nreturn [{ json: { relatorio: 'status_proativo', gerado_em: $now.toISO(), origem_dos_dados: 'sub-workflow de consulta de status (mesmo usado pelo agente)', total: linhas.length, pedidos: linhas } }];"
+      }
+    },
+    {
+      "id": "face5b24-064c-5039-81e3-b779bfa6a312",
+      "name": "[SAIDA] Responder Relatorio",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        880,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "[ENTRADA] Webhook Relatorio Proativo": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Listar Pedidos do Relatorio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Listar Pedidos do Relatorio": {
+      "main": [
+        [
+          {
+            "node": "[SUBWORKFLOW] Consultar Status do Pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[SUBWORKFLOW] Consultar Status do Pedido": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Montar Relatorio Proativo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Montar Relatorio Proativo": {
+      "main": [
+        [
+          {
+            "node": "[SAIDA] Responder Relatorio",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/Sao_Paulo",
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "pinData": null,
+  "meta": null,
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "u9f6CNFEuTEp5WWC",
+      "projectId": "UBzCYw0nnolqWLCz",
+      "project": {
+        "id": "UBzCYw0nnolqWLCz",
+        "name": "João Pedro Barboza <joaopedro.rigoto@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "502d8937-e56a-4a1a-9907-85b4a81f6106",
+        "createdAt": "2026-10-07T12:39:16.710Z",
+        "updatedAt": "2026-10-07T12:41:11.370Z"
+      },
+      "createdAt": "2026-11-23T06:43:14.049Z",
+      "updatedAt": "2026-11-23T06:43:14.049Z"
+    }
+  ]
+}

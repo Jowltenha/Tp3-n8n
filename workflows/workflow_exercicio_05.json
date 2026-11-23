@@ -1,0 +1,612 @@
+{
+  "id": "FKhiuKgEp1TcJYqx",
+  "name": "TP3 - Exercicio 05 - Classificacao Estruturada (LLM Chain + JSON) com Log",
+  "description": null,
+  "active": true,
+  "activeVersionId": "e0430892-48e1-45ae-820c-60def5fd762f",
+  "createdAt": "2026-11-23T06:43:13.866Z",
+  "updatedAt": "2026-11-23T06:43:13.866Z",
+  "isArchived": false,
+  "versionId": "e0430892-48e1-45ae-820c-60def5fd762f",
+  "versionCounter": 1,
+  "sourceWorkflowId": null,
+  "triggerCount": 1,
+  "nodes": [
+    {
+      "id": "bd079141-cb3d-5533-a3d2-dedb464fb81c",
+      "name": "[ENTRADA] Webhook Mensagem do Cliente",
+      "webhookId": "c1e19546-e739-591a-976d-3b0a86d29d6d",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tp3-ex05-atendimento",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "e584f0d3-3171-55cd-aa42-bd70f39a4392",
+      "name": "[FUNCAO] Normalizar Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const b = $json.body || {};\nreturn [{ json: {\n  pergunta_id: b.pergunta_id || ('PERG-' + $now.toFormat('yyyyMMdd-HHmmss') + '-' + $execution.id),\n  cliente_id: b.cliente_id || 'nao_informado',\n  session_id: b.session_id || b.cliente_id || ('sessao-' + $execution.id),\n  mensagem: String(b.mensagem || '').trim(),\n  origem: 'ex05',\n  recebido_em: $now.toISO()\n} }];"
+      }
+    },
+    {
+      "id": "8423db29-1bac-5bbe-b02d-d3afc6ccd343",
+      "name": "[IA] Classificar Mensagem (LLM Chain)",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.9,
+      "onError": "continueRegularOutput",
+      "position": [
+        460,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "=Mensagem do cliente: \"{{ $json.mensagem }}\"",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "type": "SystemMessagePromptTemplate",
+              "message": "Voce e o classificador de mensagens do atendimento da Vortice Logistica, uma transportadora. Classifique a mensagem do cliente em EXATAMENTE UMA categoria e defina a urgencia. Nao responda ao cliente e nao reescreva a mensagem.\n\nCategorias permitidas:\n- atraso: a entrega ou coleta passou do prazo, ou o cliente reclama da demora.\n- avaria: carga ou embalagem danificada, violada, molhada, quebrada ou incompleta.\n- rastreamento: o cliente quer saber onde esta o pedido, o status ou a previsao, sem relatar problema.\n- outros: qualquer outro assunto (cadastro, cobranca, elogio etc.).\n\nRaciocine nesta ordem e preencha os campos do JSON na mesma ordem:\n1. assunto: diga em uma frase curta do que a mensagem trata, sem classificar ainda.\n2. evidencias: liste os fatos da mensagem que indicam cada problema relatado.\n3. categoria: escolha UMA categoria. Se mais de uma se aplicar, use a prioridade avaria > atraso > rastreamento > outros (dano fisico exige abrir sinistro, a acao mais urgente).\n4. urgencia: alta para avaria, ou atraso com cliente insatisfeito; media para atraso sem reclamacao forte; baixa para rastreamento e outros.\n5. pedido_id_mencionado: o codigo do pedido no formato PED-0000, ou string vazia se nao houver.\n6. justificativa: uma frase explicando a decisao."
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "b5450664-9a25-5222-a099-cbcfabde803a",
+      "name": "[IA] Modelo de Linguagem (Classificacao)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        400,
+        220
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "cc/claude-haiku-5-5"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "X4WCOOQMDXqxOZAj",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "id": "9bf7974b-df9e-53cb-a3d3-4a858861177c",
+      "name": "[IA] Parser JSON Estruturado (categoria e urgencia)",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        600,
+        220
+      ],
+      "parameters": {
+        "schemaType": "manual",
+        "inputSchema": "{\n  \"type\": \"object\",\n  \"properties\": {\n    \"assunto\": {\n      \"type\": \"string\",\n      \"description\": \"Assunto da mensagem em uma frase curta\"\n    },\n    \"evidencias\": {\n      \"type\": \"array\",\n      \"items\": {\n        \"type\": \"string\"\n      },\n      \"description\": \"Fatos da mensagem que sustentam a classificacao\"\n    },\n    \"categoria\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"atraso\",\n        \"avaria\",\n        \"rastreamento\",\n        \"outros\"\n      ]\n    },\n    \"urgencia\": {\n      \"type\": \"string\",\n      \"enum\": [\n        \"baixa\",\n        \"media\",\n        \"alta\"\n      ]\n    },\n    \"pedido_id_mencionado\": {\n      \"type\": \"string\",\n      \"description\": \"Codigo PED-0000 citado ou string vazia\"\n    },\n    \"justificativa\": {\n      \"type\": \"string\"\n    }\n  },\n  \"required\": [\n    \"assunto\",\n    \"evidencias\",\n    \"categoria\",\n    \"urgencia\",\n    \"pedido_id_mencionado\",\n    \"justificativa\"\n  ]\n}"
+      }
+    },
+    {
+      "id": "e0f88f52-263a-5fb9-ac2a-8cf6d85079ae",
+      "name": "[FUNCAO] Validar Campos da Classificacao",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        760,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Confere se cada saida do LLM tem os campos esperados com valores validos.\n// Itens que falharam no parser (onError = continuar) chegam com o campo error.\nconst entradas = $('[FUNCAO] Normalizar Mensagem').all();\nconst CATEGORIAS = ['atraso', 'avaria', 'rastreamento', 'outros'];\nconst URGENCIAS = ['baixa', 'media', 'alta'];\nconst OBRIGATORIOS = ['assunto', 'categoria', 'urgencia', 'justificativa'];\nreturn $input.all().map((item, i) => {\n  const e = entradas[i] ? entradas[i].json : {};\n  const s = item.json || {};\n  const p = (s.output && typeof s.output === 'object') ? s.output : s;\n  const faltando = OBRIGATORIOS.filter(c => p[c] === undefined || p[c] === null || String(p[c]).trim() === '');\n  const categoria = String(p.categoria || '').toLowerCase().trim();\n  const urgencia = String(p.urgencia || '').toLowerCase().trim();\n  const valida = !s.error && faltando.length === 0 && CATEGORIAS.includes(categoria) && URGENCIAS.includes(urgencia);\n  return { json: {\n    pergunta_id: e.pergunta_id,\n    cliente_id: e.cliente_id,\n    mensagem: e.mensagem,\n    origem: e.origem,\n    assunto: p.assunto || '',\n    evidencias: Array.isArray(p.evidencias) ? p.evidencias : [],\n    categoria: valida ? categoria : 'nao_classificado',\n    urgencia: valida ? urgencia : 'alta',\n    pedido_id_mencionado: (p.pedido_id_mencionado || '').toUpperCase(),\n    justificativa: p.justificativa || (s.error ? 'Falha no parsing: ' + String(s.error).slice(0, 200) : ''),\n    classificacao_valida: valida,\n    campos_faltando: faltando,\n    registrado_em: $now.toISO()\n  } };\n});"
+      }
+    },
+    {
+      "id": "fd43fcb2-14c3-5d56-bfbf-858881d8bc82",
+      "name": "[SAIDA] Registrar Classificacao em tp3_log_classificacoes",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        980,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "XyD8prVBYgnol7CH",
+          "cachedResultName": "tp3_log_classificacoes"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pergunta_id": "={{ $json.pergunta_id }}",
+            "exercicio": "={{ $json.origem }}",
+            "cliente_id": "={{ $json.cliente_id }}",
+            "mensagem": "={{ $json.mensagem }}",
+            "assunto": "={{ $json.assunto }}",
+            "categoria": "={{ $json.categoria }}",
+            "urgencia": "={{ $json.urgencia }}",
+            "pedido_id_mencionado": "={{ $json.pedido_id_mencionado }}",
+            "justificativa": "={{ $json.justificativa }}",
+            "classificacao_valida": "={{ String($json.classificacao_valida) }}",
+            "registrado_em": "={{ $json.registrado_em }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "pergunta_id",
+              "displayName": "pergunta_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "exercicio",
+              "displayName": "exercicio",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "cliente_id",
+              "displayName": "cliente_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "mensagem",
+              "displayName": "mensagem",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "assunto",
+              "displayName": "assunto",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "categoria",
+              "displayName": "categoria",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "urgencia",
+              "displayName": "urgencia",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "pedido_id_mencionado",
+              "displayName": "pedido_id_mencionado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "justificativa",
+              "displayName": "justificativa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "classificacao_valida",
+              "displayName": "classificacao_valida",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "registrado_em",
+              "displayName": "registrado_em",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "02d23302-215e-53c3-88a0-86c40526b985",
+      "name": "[FUNCAO] Classificacao Valida?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        0
+      ],
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "loose",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "03814eeb-ea1a-58bd-bff4-5d795340beaa",
+              "leftValue": "={{ $json.classificacao_valida }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e1e177d5-1004-5553-95e9-62975e4a899a",
+      "name": "[AGENTE] Agente de Atendimento",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        1460,
+        -60
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('[FUNCAO] Normalizar Mensagem').first().json.mensagem }}\n\n[Classificacao automatica: categoria {{ $json.categoria }}, urgencia {{ $json.urgencia }}]",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "Voce e o agente de atendimento da Vortice Logistica, uma transportadora. Responda em portugues do Brasil, de forma cordial, objetiva e em poucas frases.\nRegras:\n1. Sempre que o cliente perguntar sobre um pedido (status, localizacao, previsao, atraso, avaria ou entrega), chame a ferramenta consultar_status_pedido com o codigo do pedido ANTES de responder. Nunca invente status, datas ou localizacao: use apenas o que a ferramenta devolver.\n2. Se o cliente nao informar o codigo do pedido (formato PED-0000), peca o codigo.\n3. Se a ferramenta nao encontrar o pedido, diga isso e peca para o cliente conferir o codigo.\n4. Em caso de avaria, informe que o caso segue para a equipe de sinistros. Em caso de atraso, informe a nova previsao e o motivo registrado.",
+          "returnIntermediateSteps": true,
+          "enableStreaming": false
+        }
+      }
+    },
+    {
+      "id": "f997b912-84df-51a3-9856-d0d328e331af",
+      "name": "[IA] Modelo de Linguagem (Agente)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        1340,
+        160
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "cc/claude-haiku-5-5"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "X4WCOOQMDXqxOZAj",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "id": "d566df27-5784-53e6-9a48-1d20a72bad83",
+      "name": "consultar_status_pedido",
+      "type": "n8n-nodes-base.dataTableTool",
+      "typeVersion": 1.1,
+      "position": [
+        1540,
+        160
+      ],
+      "parameters": {
+        "descriptionType": "manual",
+        "toolDescription": "Consulta o status de um pedido da Vortice Logistica na base de pedidos. Use sempre que o cliente perguntar sobre um pedido. Entrada: o codigo do pedido no formato PED-0000 (ex.: PED-3001). Devolve status, localizacao atual, previsao de entrega, transportadora e observacoes.",
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ySVMM8aesnf7VT6s",
+          "cachedResultName": "tp3_pedidos_clientes"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pedido_id",
+              "condition": "eq",
+              "keyValue": "={{ $fromAI('pedido_id', `Codigo do pedido no formato PED-0000`, 'string') }}"
+            }
+          ]
+        },
+        "returnAll": true
+      }
+    },
+    {
+      "id": "d87d28cd-77c3-5163-b9e0-977043a0af96",
+      "name": "[FUNCAO] Montar Resposta Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1780,
+        -60
+      ],
+      "parameters": {
+        "jsCode": "const a = $input.first().json;\nconst c = $('[FUNCAO] Validar Campos da Classificacao').first().json;\nreturn [{ json: {\n  pergunta_id: c.pergunta_id,\n  mensagem: c.mensagem,\n  classificacao: { assunto: c.assunto, categoria: c.categoria, urgencia: c.urgencia,\n                   pedido_id_mencionado: c.pedido_id_mencionado, justificativa: c.justificativa,\n                   classificacao_valida: c.classificacao_valida },\n  resposta: a.output,\n  agente_usou_ferramenta: (a.intermediateSteps || []).length > 0\n} }];"
+      }
+    },
+    {
+      "id": "4f604756-11b5-5198-9cde-3db7a921a517",
+      "name": "[SAIDA] Responder ao Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        2000,
+        -60
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    },
+    {
+      "id": "59a5e32d-3468-52e2-83d2-7f635da1793c",
+      "name": "[SAIDA] Responder Classificacao Invalida",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1460,
+        240
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ { pergunta_id: $json.pergunta_id, classificacao_valida: false, campos_faltando: $json.campos_faltando, resposta: 'Recebemos sua mensagem. Um atendente vai analisar seu caso.' } }}",
+        "options": {
+          "responseCode": 202
+        }
+      }
+    }
+  ],
+  "connections": {
+    "[IA] Modelo de Linguagem (Classificacao)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "[IA] Classificar Mensagem (LLM Chain)",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[IA] Parser JSON Estruturado (categoria e urgencia)": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "[IA] Classificar Mensagem (LLM Chain)",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[IA] Classificar Mensagem (LLM Chain)": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Validar Campos da Classificacao",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Validar Campos da Classificacao": {
+      "main": [
+        [
+          {
+            "node": "[SAIDA] Registrar Classificacao em tp3_log_classificacoes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[IA] Modelo de Linguagem (Agente)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "[AGENTE] Agente de Atendimento",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_status_pedido": {
+      "ai_tool": [
+        [
+          {
+            "node": "[AGENTE] Agente de Atendimento",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[ENTRADA] Webhook Mensagem do Cliente": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Normalizar Mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Normalizar Mensagem": {
+      "main": [
+        [
+          {
+            "node": "[IA] Classificar Mensagem (LLM Chain)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[SAIDA] Registrar Classificacao em tp3_log_classificacoes": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Classificacao Valida?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Classificacao Valida?": {
+      "main": [
+        [
+          {
+            "node": "[AGENTE] Agente de Atendimento",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "[SAIDA] Responder Classificacao Invalida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[AGENTE] Agente de Atendimento": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Montar Resposta Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Montar Resposta Final": {
+      "main": [
+        [
+          {
+            "node": "[SAIDA] Responder ao Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/Sao_Paulo",
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "pinData": null,
+  "meta": null,
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "FKhiuKgEp1TcJYqx",
+      "projectId": "UBzCYw0nnolqWLCz",
+      "project": {
+        "id": "UBzCYw0nnolqWLCz",
+        "name": "João Pedro Barboza <joaopedro.rigoto@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "502d8937-e56a-4a1a-9907-85b4a81f6106",
+        "createdAt": "2026-10-07T12:39:16.710Z",
+        "updatedAt": "2026-10-07T12:41:11.370Z"
+      },
+      "createdAt": "2026-11-23T06:43:13.869Z",
+      "updatedAt": "2026-11-23T06:43:13.869Z"
+    }
+  ]
+}

@@ -1,0 +1,101 @@
+{
+  "session_id": "ex08-janela1-1795416574",
+  "turnos": [
+    {
+      "turno": 1,
+      "mensagem": "Oi, meu nome é Bruno e tenho uma dúvida sobre o meu pedido PED-3002.",
+      "http": 200,
+      "execucao": "546",
+      "resposta": {
+        "pergunta_id": "PERG-20261123-034934-546",
+        "cliente_id": "CLI-002",
+        "session_id": "ex08-janela1-1795416574",
+        "mensagem": "Oi, meu nome é Bruno e tenho uma dúvida sobre o meu pedido PED-3002.",
+        "origem": "ex08",
+        "recebido_em": "2026-11-23T03:49:34.830-03:00",
+        "resposta": "Olá, Bruno! Consultei o pedido PED-3002 (kit de ferramentas industriais). Ele está **atrasado**: está no centro de distribuição de Joinville/SC, e a nova previsão de entrega em Florianópolis é **25/11/2026**. O motivo registrado é excesso de volume no CD de Joinville, que reteve a carga. A previsão original era 20/11/2026.\n\nQual é a sua dúvida sobre o pedido?",
+        "agente_usou_ferramenta": true,
+        "ferramentas_acionadas": [
+          {
+            "ferramenta": "consultar_status_pedido",
+            "entrada": {
+              "pedido_id": "PED-3002"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "turno": 2,
+      "mensagem": "Ele já deveria ter chegado. Qual é a nova previsão de entrega?",
+      "http": 200,
+      "execucao": "548",
+      "resposta": {
+        "pergunta_id": "PERG-20261123-034938-548",
+        "cliente_id": "CLI-002",
+        "session_id": "ex08-janela1-1795416574",
+        "mensagem": "Ele já deveria ter chegado. Qual é a nova previsão de entrega?",
+        "origem": "ex08",
+        "recebido_em": "2026-11-23T03:49:38.718-03:00",
+        "resposta": "Bruno, a nova previsão de entrega do pedido PED-3002 é **25/11/2026**, em Florianópolis. A previsão original era 20/11/2026. A carga está retida no centro de distribuição de Joinville/SC por excesso de volume, segundo a última atualização de 22/11/2026, às 09:15.\n\nLamento o transtorno. Posso ajudar com mais alguma informação sobre o pedido?",
+        "agente_usou_ferramenta": true,
+        "ferramentas_acionadas": [
+          {
+            "ferramenta": "consultar_status_pedido",
+            "entrada": {
+              "pedido_id": "PED-3002"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "turno": 3,
+      "mensagem": "E qual transportadora está com ele e por que atrasou?",
+      "http": 200,
+      "execucao": "550",
+      "resposta": {
+        "pergunta_id": "PERG-20261123-034943-550",
+        "cliente_id": "CLI-002",
+        "session_id": "ex08-janela1-1795416574",
+        "mensagem": "E qual transportadora está com ele e por que atrasou?",
+        "origem": "ex08",
+        "recebido_em": "2026-11-23T03:49:43.304-03:00",
+        "resposta": "O pedido PED-3002 está com a **TransSul Cargas**. Ele está atrasado porque a carga ficou retida por excesso de volume no centro de distribuição de Joinville/SC. A previsão original era 20/11/2026 e a nova previsão de entrega é 25/11/2026.\n\nPosso ajudar com mais alguma coisa?",
+        "agente_usou_ferramenta": true,
+        "ferramentas_acionadas": [
+          {
+            "ferramenta": "consultar_status_pedido",
+            "entrada": {
+              "pedido_id": "PED-3002"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "turno": 4,
+      "mensagem": "Obrigado. Só para confirmar: qual é mesmo o número do meu pedido e qual o meu nome?",
+      "http": 200,
+      "execucao": "552",
+      "resposta": {
+        "pergunta_id": "PERG-20261123-034947-552",
+        "cliente_id": "CLI-002",
+        "session_id": "ex08-janela1-1795416574",
+        "mensagem": "Obrigado. Só para confirmar: qual é mesmo o número do meu pedido e qual o meu nome?",
+        "origem": "ex08",
+        "recebido_em": "2026-11-23T03:49:47.484-03:00",
+        "resposta": "O número do seu pedido é **PED-3002**, e o nome cadastrado nele é **Bruno Lima**.\n\nPosso ajudar com mais alguma coisa?",
+        "agente_usou_ferramenta": true,
+        "ferramentas_acionadas": [
+          {
+            "ferramenta": "consultar_status_pedido",
+            "entrada": {
+              "pedido_id": "PED-3002"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}

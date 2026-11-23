@@ -1,0 +1,44 @@
+# ---------------------------------------------------------------
+# Segredos e credenciais (NUNCA versionar)
+# ---------------------------------------------------------------
+# .env tem a chave da API do n8n e a chave do LLM (proxy 9router)
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# ---------------------------------------------------------------
+# Python (ambiente virtual e caches)
+# ---------------------------------------------------------------
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# ---------------------------------------------------------------
+# Pacote de entrega (vai para o professor, não para o Git)
+# ---------------------------------------------------------------
+*.zip
+
+# ---------------------------------------------------------------
+# Arquivos locais da pasta _build (específicos desta instância)
+# ---------------------------------------------------------------
+# IDs de workflows e Data Tables da instância local do n8n
+_build/state.json
+# Checklist pessoal de prints
+_build/ROTEIRO_PRINTS.md
+
+# ---------------------------------------------------------------
+# Editor, sistema operacional e logs
+# ---------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini
+# Criado pelo Windows ao copiar prints para o WSL
+*:Zone.Identifier
+*.log

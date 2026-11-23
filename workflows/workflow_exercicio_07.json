@@ -1,0 +1,306 @@
+{
+  "id": "g1qpOMLBBU70KaCw",
+  "name": "TP3 - Exercicio 07 - Pipeline em Lote com Split, Join e Agregacao",
+  "description": null,
+  "active": true,
+  "activeVersionId": "89169dfd-de34-44c3-9286-1da9fbd85580",
+  "createdAt": "2026-11-23T06:43:14.101Z",
+  "updatedAt": "2026-11-23T06:43:14.101Z",
+  "isArchived": false,
+  "versionId": "89169dfd-de34-44c3-9286-1da9fbd85580",
+  "versionCounter": 1,
+  "sourceWorkflowId": null,
+  "triggerCount": 1,
+  "nodes": [
+    {
+      "id": "293a64d1-c8a8-5047-a1fe-fb44dc3450b1",
+      "name": "[ENTRADA] Webhook Lote de Mensagens",
+      "webhookId": "3828a15a-4a3f-53ec-9e70-f42546bd8aea",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tp3-ex07-lote",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "df1e8bc3-85bb-5b31-b996-97ccb2822cd8",
+      "name": "[FUNCAO] Dividir Lote em Itens (Split Out)",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "fieldToSplitOut": "body.mensagens",
+        "include": "noOtherFields",
+        "options": {}
+      }
+    },
+    {
+      "id": "4713ea68-8db6-5cd9-a610-18ecf4ae5314",
+      "name": "[FUNCAO] Preparar Item",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "8dec62ce-8eab-58c7-b7f0-f716d1096ae8",
+              "name": "pergunta_id",
+              "value": "={{ $json.pergunta_id }}",
+              "type": "string"
+            },
+            {
+              "id": "348f1c1c-398e-535a-b920-01ba97b152d8",
+              "name": "cliente_id",
+              "value": "={{ $json.cliente_id }}",
+              "type": "string"
+            },
+            {
+              "id": "ed89f130-e15b-543b-b5c2-f4e41eb4729e",
+              "name": "mensagem",
+              "value": "={{ $json.mensagem }}",
+              "type": "string"
+            },
+            {
+              "id": "6b1c97da-0053-59eb-8bfc-76048d402685",
+              "name": "categoria_esperada",
+              "value": "={{ $json.categoria_esperada }}",
+              "type": "string"
+            },
+            {
+              "id": "c8e03220-b880-58fe-a82b-7eca717de7b6",
+              "name": "origem",
+              "value": "ex07",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "9d94455d-3d0c-5e68-8263-497e56633b4b",
+      "name": "[SUBWORKFLOW] Classificar Itens em Paralelo",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        680,
+        -100
+      ],
+      "parameters": {
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "mfjb2rzdSVfvudpV",
+          "cachedResultName": "TP3 - Sub-workflow - Classificacao Estruturada de Mensagem"
+        },
+        "options": {
+          "waitForSubWorkflow": true
+        }
+      }
+    },
+    {
+      "id": "3522a2bc-f966-594a-bdb7-e47350091c4b",
+      "name": "[FUNCAO] Recombinar Itens com a Classificacao (Merge)",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        920,
+        0
+      ],
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByFields",
+        "fieldsToMatchString": "pergunta_id",
+        "joinMode": "enrichInput1",
+        "options": {}
+      }
+    },
+    {
+      "id": "b6336b09-5857-5e49-b164-e584a74b9534",
+      "name": "[FUNCAO] Agregar por Categoria (Summarize)",
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1.1,
+      "position": [
+        1140,
+        0
+      ],
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "count",
+              "field": "pergunta_id"
+            }
+          ]
+        },
+        "fieldsToSplitBy": "categoria",
+        "options": {}
+      }
+    },
+    {
+      "id": "878402b3-42ce-59cf-a67e-a77d6ea12329",
+      "name": "[FUNCAO] Montar Resumo e Conferir Contagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1360,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const itens = $('[FUNCAO] Recombinar Itens com a Classificacao (Merge)').all().map(i => i.json);\nconst porCategoria = {};\nfor (const g of $input.all()) porCategoria[g.json.categoria] = g.json.count_pergunta_id;\nconst esperado = {};\nfor (const it of itens) esperado[it.categoria_esperada] = (esperado[it.categoria_esperada] || 0) + 1;\nconst cats = [...new Set([...Object.keys(porCategoria), ...Object.keys(esperado)])].sort();\nconst conferencia = cats.map(c => ({ categoria: c, obtido: porCategoria[c] || 0, esperado: esperado[c] || 0,\n                                     confere: (porCategoria[c] || 0) === (esperado[c] || 0) }));\nreturn [{ json: {\n  resumo: 'lote_matinal',\n  gerado_em: $now.toISO(),\n  total_mensagens: itens.length,\n  total_por_categoria: porCategoria,\n  conferencia_contagem_manual: conferencia,\n  resumo_bate_com_contagem_manual: conferencia.every(c => c.confere),\n  itens: itens.map(i => ({ pergunta_id: i.pergunta_id, categoria: i.categoria, esperado: i.categoria_esperada, urgencia: i.urgencia }))\n} }];"
+      }
+    },
+    {
+      "id": "8e7a14fd-31f3-5de6-a3e5-463a68df2fa8",
+      "name": "[SAIDA] Responder Resumo do Lote",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1580,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "[ENTRADA] Webhook Lote de Mensagens": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Dividir Lote em Itens (Split Out)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Dividir Lote em Itens (Split Out)": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Preparar Item",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Preparar Item": {
+      "main": [
+        [
+          {
+            "node": "[SUBWORKFLOW] Classificar Itens em Paralelo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "[FUNCAO] Recombinar Itens com a Classificacao (Merge)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[SUBWORKFLOW] Classificar Itens em Paralelo": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Recombinar Itens com a Classificacao (Merge)",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Recombinar Itens com a Classificacao (Merge)": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Agregar por Categoria (Summarize)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Agregar por Categoria (Summarize)": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Montar Resumo e Conferir Contagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Montar Resumo e Conferir Contagem": {
+      "main": [
+        [
+          {
+            "node": "[SAIDA] Responder Resumo do Lote",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/Sao_Paulo",
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "pinData": null,
+  "meta": null,
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "g1qpOMLBBU70KaCw",
+      "projectId": "UBzCYw0nnolqWLCz",
+      "project": {
+        "id": "UBzCYw0nnolqWLCz",
+        "name": "João Pedro Barboza <joaopedro.rigoto@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "502d8937-e56a-4a1a-9907-85b4a81f6106",
+        "createdAt": "2026-10-07T12:39:16.710Z",
+        "updatedAt": "2026-10-07T12:41:11.370Z"
+      },
+      "createdAt": "2026-11-23T06:43:14.103Z",
+      "updatedAt": "2026-11-23T06:43:14.103Z"
+    }
+  ]
+}

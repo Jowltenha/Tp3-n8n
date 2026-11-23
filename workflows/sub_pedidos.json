@@ -1,0 +1,182 @@
+{
+  "id": "UGl6GO0yzmv3tzKq",
+  "name": "TP3 - Sub-workflow - Consulta de Status de Pedido",
+  "description": null,
+  "active": true,
+  "activeVersionId": "fecd64d4-c4cb-480f-b1c1-ffe072b8f428",
+  "createdAt": "2026-11-23T06:43:12.935Z",
+  "updatedAt": "2026-11-23T06:43:12.935Z",
+  "isArchived": false,
+  "versionId": "fecd64d4-c4cb-480f-b1c1-ffe072b8f428",
+  "versionCounter": 1,
+  "sourceWorkflowId": null,
+  "triggerCount": 0,
+  "nodes": [
+    {
+      "id": "b8a7be2e-96f4-5f7a-a0f9-7756c533115a",
+      "name": "[ENTRADA] Receber pedido_id",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "pedido_id",
+              "type": "string"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "id": "07b4c8d1-fe30-5b0b-ac3c-9230bc49891e",
+      "name": "[FUNCAO] Padronizar Codigo do Pedido",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "mode": "manual",
+        "includeOtherFields": false,
+        "assignments": {
+          "assignments": [
+            {
+              "id": "6773493d-b0b7-54c2-ae28-5a77069520b8",
+              "name": "pedido_id_original",
+              "value": "={{ $json.pedido_id }}",
+              "type": "string"
+            },
+            {
+              "id": "f9a81eda-f5b5-58ad-a7a0-c44006f3bf7e",
+              "name": "pedido_id",
+              "value": "={{ (() => { const d = String($json.pedido_id || '').replace(/[^0-9]/g, ''); return d ? 'PED-' + d : ''; })() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "e011bdc2-1a24-5582-a35e-6b6a2dae6d45",
+      "name": "[INTEGRACAO] Buscar Pedido em tp3_pedidos_clientes",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "alwaysOutputData": true,
+      "position": [
+        440,
+        0
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "ySVMM8aesnf7VT6s",
+          "cachedResultName": "tp3_pedidos_clientes"
+        },
+        "matchType": "allConditions",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "pedido_id",
+              "condition": "eq",
+              "keyValue": "={{ $json.pedido_id }}"
+            }
+          ]
+        },
+        "returnAll": true
+      }
+    },
+    {
+      "id": "1361d63e-4500-5f82-9d7c-774b015ac02b",
+      "name": "[FUNCAO] Montar Resposta Padronizada",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        660,
+        0
+      ],
+      "parameters": {
+        "jsCode": "// Contrato unico de saida, consumido pelo agente (tool) e pelo relatorio proativo.\nconst buscado = $('[FUNCAO] Padronizar Codigo do Pedido').first().json;\nconst p = $input.all().map(i => i.json).find(r => r.pedido_id);\nif (!p) {\n  return [{ json: {\n    encontrado: false,\n    pedido_id: buscado.pedido_id || buscado.pedido_id_original,\n    mensagem: 'Pedido nao encontrado na base da Vortice Logistica. Confira o codigo informado.'\n  } }];\n}\nreturn [{ json: {\n  encontrado: true,\n  pedido_id: p.pedido_id,\n  cliente_id: p.cliente_id,\n  cliente_nome: p.cliente_nome,\n  produto: p.produto,\n  status: p.status,\n  transportadora: p.transportadora,\n  origem: p.origem,\n  destino: p.destino,\n  localizacao_atual: p.localizacao_atual,\n  previsao_entrega: p.previsao_entrega,\n  ultima_atualizacao: p.ultima_atualizacao,\n  observacao: p.observacao,\n  consultado_em: $now.toISO()\n} }];"
+      }
+    }
+  ],
+  "connections": {
+    "[ENTRADA] Receber pedido_id": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Padronizar Codigo do Pedido",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Padronizar Codigo do Pedido": {
+      "main": [
+        [
+          {
+            "node": "[INTEGRACAO] Buscar Pedido em tp3_pedidos_clientes",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[INTEGRACAO] Buscar Pedido em tp3_pedidos_clientes": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Montar Resposta Padronizada",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/Sao_Paulo",
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "pinData": null,
+  "meta": null,
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "UGl6GO0yzmv3tzKq",
+      "projectId": "UBzCYw0nnolqWLCz",
+      "project": {
+        "id": "UBzCYw0nnolqWLCz",
+        "name": "João Pedro Barboza <joaopedro.rigoto@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "502d8937-e56a-4a1a-9907-85b4a81f6106",
+        "createdAt": "2026-10-07T12:39:16.710Z",
+        "updatedAt": "2026-10-07T12:41:11.370Z"
+      },
+      "createdAt": "2026-11-23T06:43:12.943Z",
+      "updatedAt": "2026-11-23T06:43:12.943Z"
+    }
+  ]
+}

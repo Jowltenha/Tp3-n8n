@@ -1,0 +1,80 @@
+{
+  "session_id": "ex08-bruno-1795416547",
+  "turnos": [
+    {
+      "turno": 1,
+      "mensagem": "Oi, meu nome é Bruno e tenho uma dúvida sobre o meu pedido PED-3002.",
+      "http": 200,
+      "execucao": "541",
+      "resposta": {
+        "pergunta_id": "PERG-20261123-034907-541",
+        "cliente_id": "CLI-002",
+        "session_id": "ex08-bruno-1795416547",
+        "mensagem": "Oi, meu nome é Bruno e tenho uma dúvida sobre o meu pedido PED-3002.",
+        "origem": "ex08",
+        "recebido_em": "2026-11-23T03:49:07.653-03:00",
+        "resposta": "Olá, Bruno! Encontrei o pedido PED-3002 (kit de ferramentas industriais). Ele está **atrasado**: a carga está retida por excesso de volume no centro de distribuição de Joinville/SC. A previsão original era 20/11/2026, e a nova previsão de entrega é **25/11/2026**.\n\nQual é a sua dúvida sobre o pedido?",
+        "agente_usou_ferramenta": true,
+        "ferramentas_acionadas": [
+          {
+            "ferramenta": "consultar_status_pedido",
+            "entrada": {
+              "pedido_id": "PED-3002"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "turno": 2,
+      "mensagem": "Ele já deveria ter chegado. Qual é a nova previsão de entrega?",
+      "http": 200,
+      "execucao": "543",
+      "resposta": {
+        "pergunta_id": "PERG-20261123-034911-543",
+        "cliente_id": "CLI-002",
+        "session_id": "ex08-bruno-1795416547",
+        "mensagem": "Ele já deveria ter chegado. Qual é a nova previsão de entrega?",
+        "origem": "ex08",
+        "recebido_em": "2026-11-23T03:49:11.720-03:00",
+        "resposta": "Entendo a sua preocupação, Bruno, e peço desculpas pelo atraso. A nova previsão de entrega é **25/11/2026**. O motivo registrado é a retenção da carga por excesso de volume no centro de distribuição de Joinville/SC. A última atualização do pedido foi em 22/11/2026, às 09:15.",
+        "agente_usou_ferramenta": false,
+        "ferramentas_acionadas": []
+      }
+    },
+    {
+      "turno": 3,
+      "mensagem": "E qual transportadora está com ele e por que atrasou?",
+      "http": 200,
+      "execucao": "544",
+      "resposta": {
+        "pergunta_id": "PERG-20261123-034914-544",
+        "cliente_id": "CLI-002",
+        "session_id": "ex08-bruno-1795416547",
+        "mensagem": "E qual transportadora está com ele e por que atrasou?",
+        "origem": "ex08",
+        "recebido_em": "2026-11-23T03:49:14.842-03:00",
+        "resposta": "A transportadora responsável é a **TransSul Cargas**. O atraso foi causado pela retenção da carga por excesso de volume no centro de distribuição de Joinville/SC, que fica no caminho entre Porto Alegre/RS e Florianopolis/SC. A previsão original era 20/11/2026.",
+        "agente_usou_ferramenta": false,
+        "ferramentas_acionadas": []
+      }
+    },
+    {
+      "turno": 4,
+      "mensagem": "Obrigado. Só para confirmar: qual é mesmo o número do meu pedido e qual o meu nome?",
+      "http": 200,
+      "execucao": "545",
+      "resposta": {
+        "pergunta_id": "PERG-20261123-034917-545",
+        "cliente_id": "CLI-002",
+        "session_id": "ex08-bruno-1795416547",
+        "mensagem": "Obrigado. Só para confirmar: qual é mesmo o número do meu pedido e qual o meu nome?",
+        "origem": "ex08",
+        "recebido_em": "2026-11-23T03:49:17.028-03:00",
+        "resposta": "Claro, Bruno! O número do seu pedido é **PED-3002** e o nome cadastrado é **Bruno Lima**.\n\nSe precisar de mais alguma informação sobre a entrega, é só perguntar.",
+        "agente_usou_ferramenta": false,
+        "ferramentas_acionadas": []
+      }
+    }
+  ]
+}

@@ -1,0 +1,82 @@
+[
+  {
+    "id": "M1",
+    "esperado": "atraso",
+    "http": 200,
+    "execucao": "528",
+    "resposta": {
+      "pergunta_id": "EX05-M1",
+      "mensagem": "Meu pedido PED-3002 deveria ter chegado no dia 20 e até agora nada. Já são três dias de atraso e meus clientes estão me cobrando.",
+      "classificacao": {
+        "assunto": "Cliente reclama de atraso de três dias na entrega do pedido PED-3002.",
+        "categoria": "atraso",
+        "urgencia": "alta",
+        "pedido_id_mencionado": "PED-3002",
+        "justificativa": "A entrega passou do prazo em três dias e o cliente está insatisfeito, pois sofre cobranças de terceiros, o que caracteriza atraso com cliente insatisfeito (urgência alta).",
+        "classificacao_valida": true
+      },
+      "resposta": "Sinto pelo transtorno, Bruno. Consultei o pedido PED-3002 (kit de ferramentas industriais, Porto Alegre/RS para Florianópolis/SC):\n\n- **Status:** atrasado, com a transportadora TransSul Cargas.\n- **Localização atual:** Centro de distribuição de Joinville/SC.\n- **Motivo:** a carga foi retida por excesso de volume no CD de Joinville. A previsão original era 20/11.\n- **Nova previsão de entrega:** 25/11/2026.\n\nSe precisar, posso consultar o pedido novamente para acompanhar a movimentação.",
+      "agente_usou_ferramenta": true
+    }
+  },
+  {
+    "id": "M2",
+    "esperado": "avaria",
+    "http": 200,
+    "execucao": "529",
+    "resposta": {
+      "pergunta_id": "EX05-M2",
+      "mensagem": "Recebi o pedido PED-3003 ontem, mas a caixa veio toda amassada e a tela do monitor chegou trincada.",
+      "classificacao": {
+        "assunto": "Cliente relata caixa amassada e tela do monitor trincada ao receber o pedido PED-3003.",
+        "categoria": "avaria",
+        "urgencia": "alta",
+        "pedido_id_mencionado": "PED-3003",
+        "justificativa": "Há dano físico na embalagem e no produto, o que exige abertura de sinistro, por isso a categoria é avaria com urgência alta.",
+        "classificacao_valida": true
+      },
+      "resposta": "Lamento pelo ocorrido com o monitor LG 27 polegadas do pedido PED-3003. Nossos registros confirmam a avaria: o pedido foi entregue em 21/11/2026 com a observação de tela trincada, e o sinistro **SIN-0778** já foi aberto. O caso segue para a equipe de sinistros.\n\nPara ajudar com a análise, envie, se possível, fotos da caixa e do monitor danificado. Se tiver alguma dúvida sobre o andamento, é só me avisar.",
+      "agente_usou_ferramenta": true
+    }
+  },
+  {
+    "id": "M3",
+    "esperado": "rastreamento",
+    "http": 200,
+    "execucao": "530",
+    "resposta": {
+      "pergunta_id": "EX05-M3",
+      "mensagem": "Boa tarde! Vocês conseguem me dizer em que cidade está o meu pedido PED-3001 agora e se ele já saiu para entrega?",
+      "classificacao": {
+        "assunto": "Cliente quer saber a localização atual do pedido PED-3001 e se ele já saiu para entrega.",
+        "categoria": "rastreamento",
+        "urgencia": "baixa",
+        "pedido_id_mencionado": "PED-3001",
+        "justificativa": "O cliente pede apenas o status e a localização do pedido, sem relatar problema, o que caracteriza rastreamento com urgência baixa.",
+        "classificacao_valida": true
+      },
+      "resposta": "Boa tarde! O pedido PED-3001 (Notebook Dell Inspiron 15) está **em trânsito**, no **Centro de distribuição de Campinas/SP**. Ele ainda não consta como saído para entrega. A previsão de entrega é para **24/11/2026**, e a carga está dentro do prazo. A última atualização foi em 22/11/2026 às 18:40, pela transportadora Rodovia Express.",
+      "agente_usou_ferramenta": true
+    }
+  },
+  {
+    "id": "M4",
+    "esperado": "avaria",
+    "http": 200,
+    "execucao": "531",
+    "resposta": {
+      "pergunta_id": "EX05-M4",
+      "mensagem": "Chegou só hoje, três dias depois do prazo, e a embalagem veio rasgada. E agora?",
+      "classificacao": {
+        "assunto": "Cliente informa entrega com três dias de atraso e embalagem rasgada.",
+        "categoria": "avaria",
+        "urgencia": "alta",
+        "pedido_id_mencionado": "",
+        "justificativa": "Há dois problemas, mas a avaria tem prioridade sobre o atraso por exigir abertura de sinistro, e a urgência é alta por se tratar de avaria.",
+        "classificacao_valida": true
+      },
+      "resposta": "Lamento muito pelo atraso e pela embalagem rasgada. Para eu localizar seu pedido e verificar o que aconteceu, preciso do código no formato PED-0000 (por exemplo, PED-3001). Você pode me informar?\n\nDepois de consultar o pedido, vou registrar a avaria e informar os próximos passos.",
+      "agente_usou_ferramenta": false
+    }
+  }
+]

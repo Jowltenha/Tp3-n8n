@@ -1,0 +1,292 @@
+{
+  "id": "SAaBsBWpTe5edvl1",
+  "name": "TP3 - Exercicio 08 - Agente Conversacional com Memoria de Janela",
+  "description": null,
+  "active": true,
+  "activeVersionId": "6701c6a2-6062-4f28-87b7-834b0dcafa6a",
+  "createdAt": "2026-11-23T06:43:14.138Z",
+  "updatedAt": "2026-11-23T06:50:06.813Z",
+  "isArchived": false,
+  "versionId": "6701c6a2-6062-4f28-87b7-834b0dcafa6a",
+  "versionCounter": 3,
+  "sourceWorkflowId": null,
+  "triggerCount": 1,
+  "nodes": [
+    {
+      "id": "1b7a2bca-074d-5719-8b29-f2a7694a0e30",
+      "name": "[ENTRADA] Webhook Mensagem do Cliente",
+      "webhookId": "00ed4549-7696-56f9-b79c-ca8b58e7c8f0",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.2,
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "tp3-ex08-conversa",
+        "responseMode": "responseNode",
+        "options": {}
+      }
+    },
+    {
+      "id": "7bed6b5b-26d2-5605-a31d-d896a3edf039",
+      "name": "[FUNCAO] Normalizar Mensagem",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const b = $json.body || {};\nreturn [{ json: {\n  pergunta_id: b.pergunta_id || ('PERG-' + $now.toFormat('yyyyMMdd-HHmmss') + '-' + $execution.id),\n  cliente_id: b.cliente_id || 'nao_informado',\n  session_id: b.session_id || b.cliente_id || ('sessao-' + $execution.id),\n  mensagem: String(b.mensagem || '').trim(),\n  origem: 'ex08',\n  recebido_em: $now.toISO()\n} }];"
+      }
+    },
+    {
+      "id": "5588a690-7ea2-5898-83c6-55cfd2292d2c",
+      "name": "[AGENTE] Agente de Atendimento",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        480,
+        0
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.mensagem }}",
+        "hasOutputParser": false,
+        "options": {
+          "systemMessage": "Voce e o agente de atendimento da Vortice Logistica, uma transportadora. Responda em portugues do Brasil, de forma cordial, objetiva e em poucas frases.\nRegras:\n1. Sempre que o cliente perguntar sobre um pedido (status, localizacao, previsao, atraso, avaria ou entrega), chame a ferramenta consultar_status_pedido com o codigo do pedido ANTES de responder. Nunca invente status, datas ou localizacao: use apenas o que a ferramenta devolver.\n2. Se o cliente nao informar o codigo do pedido (formato PED-0000), peca o codigo.\n3. Se a ferramenta nao encontrar o pedido, diga isso e peca para o cliente conferir o codigo.\n4. Em caso de avaria, informe que o caso segue para a equipe de sinistros. Em caso de atraso, informe a nova previsao e o motivo registrado.\n5. Esta e uma conversa com varias mensagens. Use o que o cliente ja informou antes (nome, codigo do pedido, problema relatado) e nao peca de novo uma informacao que ja foi dada.",
+          "returnIntermediateSteps": true,
+          "enableStreaming": false
+        }
+      }
+    },
+    {
+      "id": "22f5a0e5-033f-5cc5-a992-ed46045d16ca",
+      "name": "[IA] Modelo de Linguagem (Agente)",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [
+        360,
+        220
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "cc/claude-haiku-5-5"
+        },
+        "responsesApiEnabled": false,
+        "options": {
+          "temperature": 0
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "X4WCOOQMDXqxOZAj",
+          "name": "OpenAI account"
+        }
+      }
+    },
+    {
+      "id": "76e90147-c82a-5dc6-b282-fab528a08b59",
+      "name": "[MEMORIA] Memoria de Janela (ultimas 5 trocas)",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        480,
+        240
+      ],
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.session_id }}",
+        "contextWindowLength": 5
+      }
+    },
+    {
+      "id": "ca9f99c9-9dee-5336-98fa-cabeece89cea",
+      "name": "consultar_status_pedido",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 2.2,
+      "position": [
+        640,
+        240
+      ],
+      "parameters": {
+        "description": "Consulta o status de um pedido da Vortice Logistica na base de pedidos. Use sempre que o cliente perguntar sobre um pedido. Entrada: o codigo do pedido no formato PED-0000 (ex.: PED-3001). Devolve status, localizacao atual, previsao de entrega, transportadora e observacoes.",
+        "source": "database",
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "UGl6GO0yzmv3tzKq",
+          "cachedResultName": "TP3 - Sub-workflow - Consulta de Status de Pedido"
+        },
+        "workflowInputs": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "pedido_id": "={{ $fromAI('pedido_id', `Codigo do pedido no formato PED-0000`, 'string') }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "pedido_id",
+              "displayName": "pedido_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "canBeUsedToMatch": true,
+              "type": "string"
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        }
+      }
+    },
+    {
+      "id": "e60dec07-dda4-590f-81b7-54c953e2bab7",
+      "name": "[FUNCAO] Montar Resposta Final",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        800,
+        0
+      ],
+      "parameters": {
+        "jsCode": "const a = $input.first().json;\nconst passos = (a.intermediateSteps || []).map(p => ({\n  ferramenta: p.action && p.action.tool,\n  entrada: p.action && p.action.toolInput,\n}));\nreturn [{ json: {\n  ...$('[FUNCAO] Normalizar Mensagem').first().json,\n  resposta: a.output,\n  agente_usou_ferramenta: passos.length > 0,\n  ferramentas_acionadas: passos,\n} }];"
+      }
+    },
+    {
+      "id": "d904f8ad-28ab-52c4-9b39-0f4ce1edfedc",
+      "name": "[SAIDA] Responder ao Webhook",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1020,
+        0
+      ],
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}",
+        "options": {
+          "responseCode": 200
+        }
+      }
+    }
+  ],
+  "connections": {
+    "[IA] Modelo de Linguagem (Agente)": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "[AGENTE] Agente de Atendimento",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[MEMORIA] Memoria de Janela (ultimas 5 trocas)": {
+      "ai_memory": [
+        [
+          {
+            "node": "[AGENTE] Agente de Atendimento",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "consultar_status_pedido": {
+      "ai_tool": [
+        [
+          {
+            "node": "[AGENTE] Agente de Atendimento",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[ENTRADA] Webhook Mensagem do Cliente": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Normalizar Mensagem",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Normalizar Mensagem": {
+      "main": [
+        [
+          {
+            "node": "[AGENTE] Agente de Atendimento",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[AGENTE] Agente de Atendimento": {
+      "main": [
+        [
+          {
+            "node": "[FUNCAO] Montar Resposta Final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "[FUNCAO] Montar Resposta Final": {
+      "main": [
+        [
+          {
+            "node": "[SAIDA] Responder ao Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "nodeGroups": [],
+  "settings": {
+    "saveExecutionProgress": true,
+    "saveManualExecutions": true,
+    "saveDataErrorExecution": "all",
+    "saveDataSuccessExecution": "all",
+    "timezone": "America/Sao_Paulo",
+    "executionOrder": "v1",
+    "callerPolicy": "workflowsFromSameOwner",
+    "availableInMCP": true
+  },
+  "staticData": null,
+  "pinData": null,
+  "meta": null,
+  "tags": [],
+  "shared": [
+    {
+      "role": "workflow:owner",
+      "workflowId": "SAaBsBWpTe5edvl1",
+      "projectId": "UBzCYw0nnolqWLCz",
+      "project": {
+        "id": "UBzCYw0nnolqWLCz",
+        "name": "João Pedro Barboza <joaopedro.rigoto@gmail.com>",
+        "type": "personal",
+        "icon": null,
+        "description": null,
+        "customTelemetryTags": [],
+        "creatorId": "502d8937-e56a-4a1a-9907-85b4a81f6106",
+        "createdAt": "2026-10-07T12:39:16.710Z",
+        "updatedAt": "2026-10-07T12:41:11.370Z"
+      },
+      "createdAt": "2026-11-23T06:43:14.139Z",
+      "updatedAt": "2026-11-23T06:43:14.139Z"
+    }
+  ]
+}

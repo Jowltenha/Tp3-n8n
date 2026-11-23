@@ -1,0 +1,30 @@
+TP3 - Exercicio 2 - Teste de prompts (2026-11-23 20:14:38)
+Modelo: cc/claude-haiku-5-5 | endpoint: http://localhost:20128/v1 | repeticoes por mensagem: 5 | temperatura: 0.7
+
+[M1] (atraso, esperado: atraso) Meu pedido PED-3002 deveria ter chegado no dia 20 e até agora nada. Já são três dias de atraso e meus clientes estão me cobrando.
+    simples  unica=5 mista=0 sem_categoria=0 acertos=5/5 consistencia=100% distribuicao={'atraso': 5}
+             exemplo rodada 1: **Categoria: atraso** |  | A mensagem trata de uma entrega que não chegou na data prevista (dia 20), com três dias de atraso.
+    guiado   unica=5 mista=0 sem_categoria=0 acertos=5/5 consistencia=100% distribuicao={'atraso': 5}
+             exemplo rodada 1: ASSUNTO: Pedido PED-3002 não chegou na data prevista, cliente reclama de três dias de atraso. | EVIDENCIAS: "deveria ter chegado no dia 20", "até agora nada", "já são três dias de atraso", "meus clientes estão me cobrando". | CANDIDATAS: atraso | DESEMPATE: Há
+
+[M2] (avaria, esperado: avaria) Recebi o pedido PED-3003 ontem, mas a caixa veio toda amassada e a tela do monitor chegou trincada.
+    simples  unica=5 mista=0 sem_categoria=0 acertos=5/5 consistencia=100% distribuicao={'avaria': 5}
+             exemplo rodada 1: **Categoria: avaria** |  | A mensagem descreve danos físicos ao produto no momento da entrega: a caixa chegou amassada e a tela do monitor veio trincada.
+    guiado   unica=5 mista=0 sem_categoria=0 acertos=5/5 consistencia=100% distribuicao={'avaria': 5}
+             exemplo rodada 1: ASSUNTO: Cliente recebeu o pedido PED-3003 com a caixa amassada e a tela do monitor trincada. | EVIDENCIAS: "a caixa veio toda amassada" (embalagem danificada) e "a tela do monitor chegou trincada" (produto danificado). | CANDIDATAS: avaria. | DESEMPATE: Apena
+
+[M3] (duvida de rastreamento, esperado: rastreamento) Boa tarde! Vocês conseguem me dizer em que cidade está o meu pedido PED-3001 agora e se ele já saiu para entrega?
+    simples  unica=5 mista=0 sem_categoria=0 acertos=5/5 consistencia=100% distribuicao={'rastreamento': 5}
+             exemplo rodada 1: **Categoria: rastreamento** |  | O cliente quer saber a localização atual do pedido PED-3001 e se ele já saiu para entrega, o que são informações de rastreamento.
+    guiado   unica=5 mista=0 sem_categoria=0 acertos=5/5 consistencia=100% distribuicao={'rastreamento': 5}
+             exemplo rodada 1: ASSUNTO: Cliente pergunta a localização atual do pedido PED-3001 e se ele já saiu para entrega. | EVIDENCIAS: "em que cidade está o meu pedido PED-3001 agora" e "se ele já saiu para entrega" são pedidos de informação sobre localização e status; não há relato d
+
+[M4] (ambigua, esperado: avaria) Chegou só hoje, três dias depois do prazo, e a embalagem veio rasgada. E agora?
+    simples  unica=0 mista=5 sem_categoria=0 acertos=0/5 consistencia=100% distribuicao={'atraso+avaria': 5}
+             exemplo rodada 1: **Categorias: atraso e avaria** |  | A mensagem trata de dois problemas: |  | - **Atraso:** "Chegou só hoje, três dias depois do prazo." | - **Avaria:** "a embalagem veio rasgada." |  | Como a mensagem se encaixa em duas categorias, convém registrar ambas. Se 
+    guiado   unica=5 mista=0 sem_categoria=0 acertos=5/5 consistencia=100% distribuicao={'avaria': 5}
+             exemplo rodada 1: ASSUNTO: Cliente reclama de entrega com três dias de atraso e de embalagem rasgada. | EVIDENCIAS: "Chegou só hoje, três dias depois do prazo" indica atraso; "a embalagem veio rasgada" indica dano na embalagem. | CANDIDATAS: atraso, avaria | DESEMPATE: Há duas 
+
+TOTAIS
+    simples  categoria unica 15/20 | mistas 5/20 | sem categoria 0/20 | acertos 15/20
+    guiado   categoria unica 20/20 | mistas 0/20 | sem categoria 0/20 | acertos 20/20

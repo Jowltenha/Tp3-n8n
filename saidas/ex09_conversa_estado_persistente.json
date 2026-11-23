@@ -1,0 +1,71 @@
+{
+  "session_id": "ex09-bruno-1795416618",
+  "turnos": [
+    {
+      "turno": 1,
+      "mensagem": "Oi, meu nome é Bruno e tenho uma dúvida sobre o meu pedido PED-3002.",
+      "http": 200,
+      "execucao": "554",
+      "resposta": {
+        "session_id": "ex09-bruno-1795416618",
+        "resposta": "Olá, Bruno! Consultei o pedido PED-3002 (Kit de ferramentas industriais). Ele está **atrasado**: a carga está no Centro de Distribuição de Joinville/SC, retida por excesso de volume. A nova previsão de entrega é **25/11/2026** (a previsão original era 20/11/2026). A transportadora é a TransSul Cargas.\n\nQual é a sua dúvida sobre o pedido?",
+        "estado_encontrado": false,
+        "trocas_recuperadas": 0,
+        "total_trocas_salvas": 1,
+        "ferramentas_acionadas": [
+          "consultar_status_pedido"
+        ],
+        "execucao": "554"
+      }
+    },
+    {
+      "turno": 2,
+      "mensagem": "Ele já deveria ter chegado. Qual é a nova previsão de entrega?",
+      "http": 200,
+      "execucao": "556",
+      "resposta": {
+        "session_id": "ex09-bruno-1795416618",
+        "resposta": "Bruno, sinto muito pelo transtorno. A nova previsão de entrega do pedido PED-3002 (Kit de ferramentas industriais) é **25/11/2026**, e a previsão original era 20/11/2026. O motivo registrado é retenção da carga por excesso de volume no Centro de Distribuição de Joinville/SC. A transportadora é a TransSul Cargas, e a última atualização do pedido foi em 22/11/2026 às 09:15.",
+        "estado_encontrado": true,
+        "trocas_recuperadas": 1,
+        "total_trocas_salvas": 2,
+        "ferramentas_acionadas": [
+          "consultar_status_pedido"
+        ],
+        "execucao": "556"
+      }
+    },
+    {
+      "turno": 3,
+      "mensagem": "E qual transportadora está com ele e por que atrasou?",
+      "http": 200,
+      "execucao": "558",
+      "resposta": {
+        "session_id": "ex09-bruno-1795416618",
+        "resposta": "A transportadora responsável pelo pedido PED-3002 é a **TransSul Cargas**. A carga está no Centro de Distribuição de Joinville/SC, retida por **excesso de volume**, o que causou o atraso. A previsão original era 20/11/2026 e a nova previsão de entrega é **25/11/2026**.",
+        "estado_encontrado": true,
+        "trocas_recuperadas": 2,
+        "total_trocas_salvas": 3,
+        "ferramentas_acionadas": [
+          "consultar_status_pedido"
+        ],
+        "execucao": "558"
+      }
+    },
+    {
+      "turno": 4,
+      "mensagem": "Obrigado. Só para confirmar: qual é mesmo o número do meu pedido e qual o meu nome?",
+      "http": 200,
+      "execucao": "560",
+      "resposta": {
+        "session_id": "ex09-bruno-1795416618",
+        "resposta": "Seu nome é **Bruno** e o número do pedido é **PED-3002** (Kit de ferramentas industriais). Posso ajudar com mais alguma coisa sobre ele?",
+        "estado_encontrado": true,
+        "trocas_recuperadas": 3,
+        "total_trocas_salvas": 4,
+        "ferramentas_acionadas": [],
+        "execucao": "560"
+      }
+    }
+  ]
+}

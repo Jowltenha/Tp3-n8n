@@ -1,0 +1,182 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 780" width="100%" height="100%" style="background:#0d1117; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,sans-serif;">
+  <defs>
+    <linearGradient id="primaryGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1f6feb" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#388bfd" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="sub1Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8957e5" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#a371f7" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="sub2Grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#238636" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#2ea043" stop-opacity="0.08"/>
+    </linearGradient>
+    <linearGradient id="extGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#d29922" stop-opacity="0.25"/>
+      <stop offset="100%" stop-color="#e3b341" stop-opacity="0.08"/>
+    </linearGradient>
+    <marker id="arrowBlue" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#58a6ff"/>
+    </marker>
+    <marker id="arrowPurple" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#bc8cff"/>
+    </marker>
+    <marker id="arrowGreen" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#3fb950"/>
+    </marker>
+    <marker id="arrowGold" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+      <path d="M 0 1 L 10 5 L 0 9 z" fill="#d29922"/>
+    </marker>
+    <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="4" stdDeviation="6" flood-color="#000" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Titulo do Canvas -->
+  <text x="50" y="45" fill="#f0f6fc" font-size="22" font-weight="700">Vórtice Logística · Arquitetura Agêntica em Sub-workflows Declarativos</text>
+  <text x="50" y="70" fill="#8b949e" font-size="13">Exercício 3 · Mapa de orquestração do atendimento com sub-workflows reutilizáveis no n8n</text>
+
+  <!-- ==================== CANAL DE ENTRADA ==================== -->
+  <g transform="translate(50, 95)" filter="url(#cardShadow)">
+    <rect width="1000" height="60" rx="8" fill="#161b22" stroke="#30363d" stroke-width="1.5"/>
+    <circle cx="30" cy="30" r="14" fill="#388bfd" fill-opacity="0.2"/>
+    <text x="30" y="35" fill="#58a6ff" font-size="14" text-anchor="middle" font-weight="bold">IN</text>
+    <text x="60" y="27" fill="#f0f6fc" font-size="14" font-weight="600">Canais de Entrada: Mensagens de Clientes e Lotes Matutinos</text>
+    <text x="60" y="47" fill="#8b949e" font-size="12">POST /webhook/tp3-atendimento (canal conversacional) · Carga de mensagens matutinas em lote (Ex 7)</text>
+  </g>
+
+  <!-- Linha conectora geral -->
+  <path d="M 550 155 L 550 185" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+  <!-- ==================== WORKFLOW PRINCIPAL ==================== -->
+  <g transform="translate(50, 185)" filter="url(#cardShadow)">
+    <!-- Container Principal -->
+    <rect width="1000" height="310" rx="10" fill="url(#primaryGrad)" stroke="#1f6feb" stroke-width="2"/>
+    <rect width="1000" height="40" rx="10" fill="#1f6feb" fill-opacity="0.3"/>
+    <text x="25" y="26" fill="#f0f6fc" font-size="15" font-weight="700">WORKFLOW PRINCIPAL · Agente de Atendimento da Vórtice Logística (Orquestrador)</text>
+    <text x="975" y="26" fill="#79c0ff" font-size="12" text-anchor="end">Exercícios 4, 8 e 9</text>
+
+    <!-- Sub-bloco 1: Ingestao e Normalizacao -->
+    <g transform="translate(25, 60)">
+      <rect width="210" height="90" rx="6" fill="#161b22" stroke="#30363d"/>
+      <text x="15" y="25" fill="#79c0ff" font-size="12" font-weight="700">1. Webhook &amp; Normalização</text>
+      <text x="15" y="47" fill="#c9d1d9" font-size="11">· Recebe mensagem e canal</text>
+      <text x="15" y="65" fill="#c9d1d9" font-size="11">· Gera pergunta_id único</text>
+      <text x="15" y="83" fill="#8b949e" font-size="10">n8n-nodes-base.webhook</text>
+    </g>
+
+    <path d="M 235 105 L 265 105" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+    <!-- Sub-bloco 2: Gestao de Estado / Memoria -->
+    <g transform="translate(265, 60)">
+      <rect width="220" height="90" rx="6" fill="#161b22" stroke="#30363d"/>
+      <text x="15" y="25" fill="#79c0ff" font-size="12" font-weight="700">2. Gestão de Estado / Memória</text>
+      <text x="15" y="47" fill="#c9d1d9" font-size="11">· Ex 8: Window Buffer (k=5)</text>
+      <text x="15" y="65" fill="#c9d1d9" font-size="11">· Ex 9: Persistência Data Table</text>
+      <text x="15" y="83" fill="#8b949e" font-size="10">Carrega histórico antes do prompt</text>
+    </g>
+
+    <path d="M 485 105 L 515 105" stroke="#58a6ff" stroke-width="2" marker-end="url(#arrowBlue)"/>
+
+    <!-- Sub-bloco 3: Agent Node (Nucleo Agentico) -->
+    <g transform="translate(515, 55)">
+      <rect width="455" height="150" rx="8" fill="#161b22" stroke="#58a6ff" stroke-width="2"/>
+      <text x="20" y="26" fill="#58a6ff" font-size="14" font-weight="700">3. Agent Node · Raciocínio &amp; Ação (ReAct / Tools Agent)</text>
+
+      <!-- Componentes do Agent -->
+      <g transform="translate(15, 40)">
+        <rect width="130" height="95" rx="4" fill="#0d1117" stroke="#30363d"/>
+        <text x="10" y="20" fill="#f0883e" font-size="11" font-weight="600">LLM Chat Model</text>
+        <text x="10" y="38" fill="#8b949e" font-size="10">OpenAI Chat Model</text>
+        <text x="10" y="55" fill="#c9d1d9" font-size="10">Claude Haiku 5.5</text>
+        <text x="10" y="72" fill="#8b949e" font-size="10">via 9router (local)</text>
+        <text x="10" y="87" fill="#7ee787" font-size="9">temp=0.0 / determinístico</text>
+      </g>
+
+      <g transform="translate(155, 40)">
+        <rect width="135" height="95" rx="4" fill="#0d1117" stroke="#30363d"/>
+        <text x="10" y="20" fill="#bc8cff" font-size="11" font-weight="600">Memória Conectada</text>
+        <text x="10" y="38" fill="#8b949e" font-size="10">Buffer Window / State</text>
+        <text x="10" y="55" fill="#c9d1d9" font-size="10">Contexto multi-turn</text>
+        <text x="10" y="72" fill="#c9d1d9" font-size="10">Session Key = cliente_id</text>
+        <text x="10" y="87" fill="#7ee787" font-size="9">Ex 8 e Ex 9</text>
+      </g>
+
+      <g transform="translate(300, 40)">
+        <rect width="140" height="95" rx="4" fill="#0d1117" stroke="#2ea043" stroke-width="1.5"/>
+        <text x="10" y="20" fill="#7ee787" font-size="11" font-weight="600">Tool Conectada</text>
+        <text x="10" y="36" fill="#3fb950" font-size="10" font-weight="600">consultar_status_pedido</text>
+        <text x="10" y="53" fill="#c9d1d9" font-size="10">Acionada pelo LLM</text>
+        <text x="10" y="70" fill="#8b949e" font-size="10">quando pedido_id</text>
+        <text x="10" y="85" fill="#58a6ff" font-size="9">→ Sub-workflow 2</text>
+      </g>
+    </g>
+
+    <!-- Sub-bloco 4: Resposta e Persistencia -->
+    <g transform="translate(25, 220)">
+      <rect width="945" height="70" rx="6" fill="#161b22" stroke="#30363d"/>
+      <text x="20" y="25" fill="#79c0ff" font-size="12" font-weight="700">4. Saída, Persistência de Sessão e Resposta ao Webhook</text>
+      <text x="20" y="47" fill="#c9d1d9" font-size="11">· Atualiza histórico na Data Table tp3_conversas_estado (Ex 9) com mensagem do cliente e resposta final do agente</text>
+      <text x="20" y="62" fill="#8b949e" font-size="10">· Respond to Webhook: entrega o texto final ao cliente com dados reais do pedido, sem expor chamadas internas da tool</text>
+    </g>
+  </g>
+
+  <!-- ==================== SUB-WORKFLOWS DECLARATIVOS ==================== -->
+
+  <!-- Conectores descendo para os sub-workflows -->
+  <path d="M 200 495 L 200 535" stroke="#bc8cff" stroke-width="2" stroke-dasharray="4" marker-end="url(#arrowPurple)"/>
+  <path d="M 850 495 L 850 535" stroke="#3fb950" stroke-width="2" marker-end="url(#arrowGreen)"/>
+
+  <!-- SUB-WORKFLOW 1: Classificacao Estruturada (Esquerda) -->
+  <g transform="translate(50, 535)" filter="url(#cardShadow)">
+    <rect width="475" height="210" rx="10" fill="url(#sub1Grad)" stroke="#8957e5" stroke-width="2"/>
+    <rect width="475" height="35" rx="10" fill="#8957e5" fill-opacity="0.3"/>
+    <text x="20" y="23" fill="#f0f6fc" font-size="13" font-weight="700">SUB-WORKFLOW 1 · Classificação Estruturada de Mensagens</text>
+    <text x="455" y="23" fill="#d2a8ff" font-size="11" text-anchor="end">Exercício 5 e Exercício 7</text>
+
+    <!-- Corpo do Sub 1 -->
+    <text x="20" y="58" fill="#d2a8ff" font-size="11" font-weight="600">ENTRADA (Trigger):</text>
+    <text x="145" y="58" fill="#c9d1d9" font-size="11">Execute Workflow Trigger (pergunta_id, cliente_id, mensagem)</text>
+
+    <text x="20" y="80" fill="#d2a8ff" font-size="11" font-weight="600">LÓGICA INTERNA:</text>
+    <text x="35" y="98" fill="#c9d1d9" font-size="11">1. LLM Chain com inferência guiada (assunto → evidências → decisão)</text>
+    <text x="35" y="115" fill="#c9d1d9" font-size="11">2. Structured Output Parser: validação estrita via JSON Schema</text>
+    <text x="35" y="132" fill="#c9d1d9" font-size="11">3. Nó Code de fallback para resiliência contra JSONs truncados</text>
+    <text x="35" y="149" fill="#c9d1d9" font-size="11">4. Data Table tp3_log_classificacoes: auditoria e histórico de logs</text>
+
+    <text x="20" y="174" fill="#d2a8ff" font-size="11" font-weight="600">SAÍDA DEVOLVIDA:</text>
+    <text x="145" y="174" fill="#7ee787" font-size="11" font-weight="600">JSON com categoria, urgência, assunto e justificativa</text>
+    <text x="20" y="194" fill="#8b949e" font-size="10">Reutilizado no pipeline em lote do Ex 7 para agregação por categoria</text>
+  </g>
+
+  <!-- SUB-WORKFLOW 2: Consulta de Status de Pedido (Direita) -->
+  <g transform="translate(575, 535)" filter="url(#cardShadow)">
+    <rect width="475" height="210" rx="10" fill="url(#sub2Grad)" stroke="#2ea043" stroke-width="2"/>
+    <rect width="475" height="35" rx="10" fill="#2ea043" fill-opacity="0.3"/>
+    <text x="20" y="23" fill="#f0f6fc" font-size="13" font-weight="700">SUB-WORKFLOW 2 · Consulta de Status de Pedido</text>
+    <text x="455" y="23" fill="#7ee787" font-size="11" text-anchor="end">Exercício 4 e Exercício 6</text>
+
+    <!-- Corpo do Sub 2 -->
+    <text x="20" y="58" fill="#7ee787" font-size="11" font-weight="600">ENTRADA (Trigger):</text>
+    <text x="145" y="58" fill="#c9d1d9" font-size="11">Execute Workflow Trigger (pedido_id, cliente_id opcional)</text>
+
+    <text x="20" y="80" fill="#7ee787" font-size="11" font-weight="600">LÓGICA INTERNA:</text>
+    <text x="35" y="98" fill="#c9d1d9" font-size="11">1. Higienização: regex para formato canônico PED-XXXX</text>
+    <text x="35" y="115" fill="#c9d1d9" font-size="11">2. Data Table tp3_pedidos_clientes: busca direta por pedido_id</text>
+    <text x="35" y="132" fill="#c9d1d9" font-size="11">3. Ramificação If: pedido encontrado vs não encontrado</text>
+    <text x="35" y="149" fill="#c9d1d9" font-size="11">4. Montagem de resumo estruturado pronto para consumo do LLM</text>
+
+    <text x="20" y="174" fill="#7ee787" font-size="11" font-weight="600">SAÍDA DEVOLVIDA:</text>
+    <text x="145" y="174" fill="#7ee787" font-size="11" font-weight="600">JSON padronizado com status, previsão, CD atual e notas</text>
+    <text x="20" y="194" fill="#8b949e" font-size="10">Consumido pela Tool do Agent (Ex 4/6) e por relatórios proativos (Ex 6)</text>
+  </g>
+
+  <!-- ==================== LEGENDA DE BENEFICIOS ==================== -->
+  <g transform="translate(50, 755)">
+    <text x="0" y="12" fill="#8b949e" font-size="11">Vantagens da divisão arquitetural:</text>
+    <text x="220" y="12" fill="#58a6ff" font-size="11">✓ Zero duplicação de lógica de banco</text>
+    <text x="460" y="12" fill="#bc8cff" font-size="11">✓ Testabilidade isolada de cada etapa</text>
+    <text x="700" y="12" fill="#7ee787" font-size="11">✓ Manutenção desacoplada (anti-monolito)</text>
+  </g>
+</svg>

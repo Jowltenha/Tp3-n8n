@@ -1,0 +1,18 @@
+{
+  "http": 200,
+  "execucao": 526,
+  "resposta": {
+    "pergunta_id": "PERG-20261123-034349-526",
+    "mensagem": "Oi, onde esta meu pedido PED-3001?",
+    "resposta": "Olá! O pedido PED-3001 (Notebook Dell Inspiron 15) está em trânsito. Ele está atualmente no Centro de Distribuição de Campinas/SP, a caminho de São Paulo/SP, transportado pela Rodovia Express.\n\nA previsão de entrega é para 24/11/2026, e a carga está dentro do prazo. A última atualização foi em 22/11/2026, às 18:40.",
+    "agente_usou_ferramenta": true,
+    "ferramentas_acionadas": [
+      {
+        "ferramenta": "consultar_status_pedido",
+        "entrada": {
+          "pedido_id": "PED-3001"
+        }
+      }
+    ]
+  }
+}

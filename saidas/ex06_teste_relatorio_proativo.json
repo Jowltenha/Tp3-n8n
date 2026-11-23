@@ -1,0 +1,28 @@
+{
+  "http": 200,
+  "execucao": "532",
+  "resposta": {
+    "relatorio": "status_proativo",
+    "origem_dos_dados": "sub-workflow de consulta de status (mesmo usado pelo agente)",
+    "total": 3,
+    "pedidos": [
+      {
+        "pedido_id": "PED-3002",
+        "cliente": "Bruno Lima",
+        "status": "atrasado",
+        "aviso_ao_cliente": "Ola, Bruno Lima! Seu pedido PED-3002 (Kit de ferramentas industriais) esta com status \"atrasado\". Local atual: Centro de distribuicao de Joinville/SC. Previsao de entrega: 2026-11-25."
+      },
+      {
+        "pedido_id": "PED-3005",
+        "cliente": "Diego Ramos",
+        "status": "saiu_para_entrega",
+        "aviso_ao_cliente": "Ola, Diego Ramos! Seu pedido PED-3005 (Smartphone Samsung A56) esta com status \"saiu_para_entrega\". Local atual: Em rota de entrega - Asa Sul, Brasilia/DF. Previsao de entrega: 2026-11-23."
+      },
+      {
+        "pedido_id": "PED-9999",
+        "status": "nao_encontrado",
+        "aviso_ao_cliente": null
+      }
+    ]
+  }
+}
